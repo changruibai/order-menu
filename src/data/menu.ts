@@ -11,7 +11,7 @@ export const menuData: Category[] = [
         id: 'gongbaojiding',
         name: '宫保鸡丁',
         description: '香辣微甜，花生酥脆',
-        image: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg?w=400&h=300&fit=crop',
+        image: '/public/images/dishes/gongbaojiding.jpg',
         category: 'meat',
         tags: ['微辣', '经典']
       },
@@ -24,52 +24,20 @@ export const menuData: Category[] = [
         tags: ['烧烤', '人气']
       },
       {
-        id: 'kejijitui',
-        name: '可乐鸡腿',
+        id: 'kelejichi',
+        name: '可乐鸡翅',
         description: '甜香入味，肉质软嫩',
-        image: 'https://images.pexels.com/photos/6210876/pexels-photo-6210876.jpeg?w=400&h=300&fit=crop',
+        image: '/public/images/dishes/kelejichi.jpeg',
         category: 'meat',
         tags: ['甜口', '下饭']
-      },
-      {
-        id: 'lamuchuaner',
-        name: '羊肉串',
-        description: '孜然飘香，外焦里嫩',
-        image: 'https://images.pexels.com/photos/1251198/pexels-photo-1251198.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['烧烤', '新疆']
-      },
-      {
-        id: 'niuroupian',
-        name: '水煮牛肉',
-        description: '麻辣鲜香，牛肉嫩滑',
-        image: 'https://images.pexels.com/photos/5409015/pexels-photo-5409015.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['川菜', '麻辣']
       },
       {
         id: 'heishaoniurou',
         name: '黑椒牛柳',
         description: '黑椒浓郁，牛肉嫩滑',
-        image: 'https://images.pexels.com/photos/3535383/pexels-photo-3535383.jpeg?w=400&h=300&fit=crop',
+        image: '/public/images/dishes/heijiaoniuliu.jpeg',
         category: 'meat',
         tags: ['西餐', '人气']
-      },
-      {
-        id: 'jiangbaoyazi',
-        name: '姜爆鸭片',
-        description: '姜香浓郁，鸭肉鲜嫩',
-        image: 'https://images.pexels.com/photos/5409021/pexels-photo-5409021.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['下饭', '香辣']
-      },
-      {
-        id: 'kaoya',
-        name: '北京烤鸭',
-        description: '皮脆肉嫩，肥而不腻',
-        image: 'https://images.pexels.com/photos/2673353/pexels-photo-2673353.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['经典', '北京']
       },
       {
         id: 'xinjiangdapan',
@@ -80,29 +48,13 @@ export const menuData: Category[] = [
         tags: ['新疆', '下饭']
       },
       {
-        id: 'kousuiji',
+        id: 'koushuiji',
         name: '口水鸡',
         description: '麻辣鲜香，口感嫩滑',
-        image: 'https://images.pexels.com/photos/5409009/pexels-photo-5409009.jpeg?w=400&h=300&fit=crop',
+        image: '/public/images/dishes/koushuiji.jpeg',
         category: 'meat',
         tags: ['川菜', '凉菜']
       },
-      {
-        id: 'yangroupao',
-        name: '羊肉泡馍',
-        description: '汤浓肉烂，馍筋光滑',
-        image: 'https://images.pexels.com/photos/6249477/pexels-photo-6249477.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['陕西', '暖胃']
-      },
-      {
-        id: 'niuroulamian',
-        name: '牛肉拉面',
-        description: '汤清面白，牛肉酥烂',
-        image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?w=400&h=300&fit=crop',
-        category: 'meat',
-        tags: ['兰州', '人气']
-      }
     ]
   },
   {
@@ -436,18 +388,10 @@ export const menuData: Category[] = [
         tags: ['经典', '快手']
       },
       {
-        id: 'jijiaozi',
-        name: '鸡肉水饺',
-        description: '皮薄馅大，鲜香多汁',
-        image: 'https://images.pexels.com/photos/4210835/pexels-photo-4210835.jpeg?w=400&h=300&fit=crop',
-        category: 'staple',
-        tags: ['传统', '人气']
-      },
-      {
         id: 'chaomian',
         name: '炒面',
         description: '劲道爽滑，酱香浓郁',
-        image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?w=400&h=300&fit=crop',
+        image: '/public/images/dishes/chaomian.avif',
         category: 'staple',
         tags: ['快手', '下饭']
       },
