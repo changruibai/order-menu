@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Plus, Minus } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
+import { getAssetUrl } from '../utils/getAssetUrl';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0"
                     >
                       <img
-                        src={item.dish.image}
+                        src={getAssetUrl(item.dish.image)}
                         alt={item.dish.name}
                         className="w-16 h-16 rounded-xl object-cover"
                       />

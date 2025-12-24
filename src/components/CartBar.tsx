@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, ChevronUp } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
+import { getAssetUrl } from '../utils/getAssetUrl';
 
 interface CartBarProps {
   onCartClick: () => void;
@@ -57,7 +58,7 @@ const CartBar: React.FC<CartBarProps> = ({ onCartClick, onCheckout }) => {
                     className="relative flex-shrink-0"
                   >
                     <img
-                      src={item.dish.image}
+                      src={getAssetUrl(item.dish.image)}
                       alt={item.dish.name}
                       className="w-10 h-10 rounded-lg object-cover"
                     />

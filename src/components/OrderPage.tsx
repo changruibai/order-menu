@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, User, FileText, CheckCircle, Loader2 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { useOrderStore } from '../store/orderStore';
+import { getAssetUrl } from '../utils/getAssetUrl';
 
 interface OrderPageProps {
   isOpen: boolean;
@@ -193,7 +194,7 @@ ${new Date().toLocaleString('zh-CN')}
                 {items.map((item) => (
                   <div key={item.dish.id} className="flex items-center gap-3">
                     <img
-                      src={item.dish.image}
+                      src={getAssetUrl(item.dish.image)}
                       alt={item.dish.name}
                       className="w-12 h-12 rounded-lg object-cover"
                     />

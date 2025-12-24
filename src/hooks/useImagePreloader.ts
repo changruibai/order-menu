@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { preloadImages } from '../utils/imageCache';
+import { getAssetUrl } from '../utils/getAssetUrl';
 import { Dish } from '../types';
 
 /**
@@ -10,7 +11,7 @@ export const useImagePreloader = (dishes: Dish[]) => {
 
   useEffect(() => {
     const imagesToPreload = dishes
-      .map(dish => dish.image)
+      .map(dish => getAssetUrl(dish.image))
       .filter(src => !preloadedRef.current.has(src));
 
     if (imagesToPreload.length > 0) {
@@ -33,7 +34,7 @@ export const useMenuImagePreloader = (allDishes: Dish[]) => {
 
     // 分批加载，避免阻塞
     const batchSize = 6;
-    const images = allDishes.map(dish => dish.image);
+    const images = allDishes.map(dish => getAssetUrl(dish.image));
     
     const loadBatch = async (startIndex: number) => {
       const batch = images.slice(startIndex, startIndex + batchSize);

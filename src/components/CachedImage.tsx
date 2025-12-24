@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { isImageCached, preloadImage } from '../utils/imageCache';
+import { getAssetUrl } from '../utils/getAssetUrl';
 
 interface CachedImageProps {
   src: string;
@@ -8,15 +9,18 @@ interface CachedImageProps {
 }
 
 const CachedImage: React.FC<CachedImageProps> = ({ src, alt, className = '' }) => {
-  const [isLoaded, setIsLoaded] = useState(() => isImageCached(src));
+  // 处理 base URL
+  const resolvedSrc = useMemo(() => getAssetUrl(src), [src]);
+  
+  const [isLoaded, setIsLoaded] = useState(() => isImageCached(resolvedSrc));
   const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
+  const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
 
   useEffect(() => {
     // 如果图片已缓存，直接显示
-    if (isImageCached(src)) {
+    if (isImageCached(resolvedSrc)) {
       setIsLoaded(true);
-      setCurrentSrc(src);
+      setCurrentSrc(resolvedSrc);
       return;
     }
 
@@ -24,15 +28,15 @@ const CachedImage: React.FC<CachedImageProps> = ({ src, alt, className = '' }) =
     setIsLoaded(false);
     setHasError(false);
     
-    preloadImage(src)
+    preloadImage(resolvedSrc)
       .then(() => {
-        setCurrentSrc(src);
+        setCurrentSrc(resolvedSrc);
         setIsLoaded(true);
       })
       .catch(() => {
         setHasError(true);
       });
-  }, [src]);
+  }, [resolvedSrc]);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);

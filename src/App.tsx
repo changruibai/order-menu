@@ -8,6 +8,7 @@ import CartDrawer from './components/CartDrawer';
 import OrderPage from './components/OrderPage';
 import { menuData, getAllDishes } from './data/menu';
 import { preloadImages } from './utils/imageCache';
+import { getAssetUrl } from './utils/getAssetUrl';
 
 // ⚠️ 配置你的 Server酱 SendKey
 // 获取方式：https://sct.ftqq.com/
@@ -24,10 +25,10 @@ function App() {
   // 预加载所有菜品图片
   useEffect(() => {
     const allDishes = getAllDishes();
-    const images = allDishes.map(dish => dish.image);
+    const images = allDishes.map(dish => getAssetUrl(dish.image));
     
     // 分批预加载，优先加载当前分类
-    const currentImages = currentCategory?.dishes.map(d => d.image) || [];
+    const currentImages = currentCategory?.dishes.map(d => getAssetUrl(d.image)) || [];
     const otherImages = images.filter(img => !currentImages.includes(img));
     
     // 先加载当前分类的图片
