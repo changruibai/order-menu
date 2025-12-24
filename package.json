@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:gitee": "GITEE_PAGES=true tsc -b && GITEE_PAGES=true vite build",
+    "build:github": "GITHUB_PAGES=true tsc -b && GITHUB_PAGES=true vite build",
     "preview": "vite preview"
   },
   "dependencies": {
