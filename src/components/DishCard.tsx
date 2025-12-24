@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, Check } from 'lucide-react';
 import { Dish } from '../types';
 import { useCartStore } from '../store/cartStore';
+import CachedImage from './CachedImage';
 
 interface DishCardProps {
   dish: Dish;
@@ -34,12 +35,11 @@ const DishCard: React.FC<DishCardProps> = ({ dish, index }) => {
       className="bg-white rounded-2xl overflow-hidden card-shadow hover:card-shadow-lg transition-shadow duration-300"
     >
       {/* 图片区域 */}
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img
+      <div className="relative aspect-[4/3] overflow-hidden group">
+        <CachedImage
           src={dish.image}
           alt={dish.name}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-          loading="lazy"
+          className="w-full h-full transition-transform duration-500 group-hover:scale-110"
         />
         
         {/* 标签 */}

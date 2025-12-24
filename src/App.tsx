@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
 import CategoryTabs from './components/CategoryTabs';
@@ -6,7 +6,8 @@ import DishList from './components/DishList';
 import CartBar from './components/CartBar';
 import CartDrawer from './components/CartDrawer';
 import OrderPage from './components/OrderPage';
-import { menuData } from './data/menu';
+import { menuData, getAllDishes } from './data/menu';
+import { preloadImages } from './utils/imageCache';
 
 // ⚠️ 配置你的 Server酱 SendKey
 // 获取方式：https://sct.ftqq.com/
@@ -19,6 +20,30 @@ function App() {
   const [isOrderOpen, setIsOrderOpen] = useState(false);
 
   const currentCategory = menuData.find(c => c.id === activeCategory);
+
+  // 预加载所有菜品图片
+  useEffect(() => {
+    const allDishes = getAllDishes();
+    const images = allDishes.map(dish => dish.image);
+    
+    // 分批预加载，优先加载当前分类
+    const currentImages = currentCategory?.dishes.map(d => d.image) || [];
+    const otherImages = images.filter(img => !currentImages.includes(img));
+    
+    // 先加载当前分类的图片
+    preloadImages(currentImages).then(() => {
+      // 然后在后台加载其他图片
+      const batchSize = 6;
+      const loadBatch = (index: number) => {
+        const batch = otherImages.slice(index, index + batchSize);
+        if (batch.length === 0) return;
+        preloadImages(batch).then(() => {
+          setTimeout(() => loadBatch(index + batchSize), 100);
+        });
+      };
+      loadBatch(0);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCategoryChange = useCallback((categoryId: string) => {
     setActiveCategory(categoryId);
