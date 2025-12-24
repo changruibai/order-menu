@@ -11,7 +11,7 @@ export const menuData: Category[] = [
         id: 'gongbaojiding',
         name: '宫保鸡丁',
         description: '香辣微甜，花生酥脆',
-        image: '/public/images/dishes/gongbaojiding.jpg',
+        image: '/images/dishes/gongbaojiding.jpg',
         category: 'meat',
         tags: ['微辣', '经典']
       },
@@ -27,7 +27,7 @@ export const menuData: Category[] = [
         id: 'kelejichi',
         name: '可乐鸡翅',
         description: '甜香入味，肉质软嫩',
-        image: '/public/images/dishes/kelejichi.jpeg',
+        image: '/images/dishes/kelejichi.jpeg',
         category: 'meat',
         tags: ['甜口', '下饭']
       },
@@ -35,7 +35,7 @@ export const menuData: Category[] = [
         id: 'heishaoniurou',
         name: '黑椒牛柳',
         description: '黑椒浓郁，牛肉嫩滑',
-        image: '/public/images/dishes/heijiaoniuliu.jpeg',
+        image: '/images/dishes/heijiaoniuliu.jpeg',
         category: 'meat',
         tags: ['西餐', '人气']
       },
@@ -51,7 +51,7 @@ export const menuData: Category[] = [
         id: 'koushuiji',
         name: '口水鸡',
         description: '麻辣鲜香，口感嫩滑',
-        image: '/public/images/dishes/koushuiji.jpeg',
+        image: '/images/dishes/koushuiji.jpeg',
         category: 'meat',
         tags: ['川菜', '凉菜']
       },
@@ -391,7 +391,7 @@ export const menuData: Category[] = [
         id: 'chaomian',
         name: '炒面',
         description: '劲道爽滑，酱香浓郁',
-        image: '/public/images/dishes/chaomian.avif',
+        image: '/images/dishes/chaomian.avif',
         category: 'staple',
         tags: ['快手', '下饭']
       },
