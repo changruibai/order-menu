@@ -43,3 +43,4 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
 
 export default React.memo(CategoryTabs);
 
+

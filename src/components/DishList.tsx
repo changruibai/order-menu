@@ -31,3 +31,4 @@ const DishList: React.FC<DishListProps> = ({ dishes, categoryName }) => {
 
 export default React.memo(DishList);
 
+
