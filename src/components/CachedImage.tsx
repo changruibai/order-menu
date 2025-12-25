@@ -6,9 +6,10 @@ interface CachedImageProps {
   src: string;
   alt: string;
   className?: string;
+  onError?: () => void;
 }
 
-const CachedImage: React.FC<CachedImageProps> = ({ src, alt, className = '' }) => {
+const CachedImage: React.FC<CachedImageProps> = ({ src, alt, className = '', onError }) => {
   // 处理 base URL
   const resolvedSrc = useMemo(() => getAssetUrl(src), [src]);
   
@@ -44,7 +45,8 @@ const CachedImage: React.FC<CachedImageProps> = ({ src, alt, className = '' }) =
 
   const handleError = useCallback(() => {
     setHasError(true);
-  }, []);
+    onError?.();
+  }, [onError]);
 
   if (hasError) {
     return (

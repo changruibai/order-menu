@@ -6,9 +6,12 @@ import DishList from './components/DishList';
 import CartBar from './components/CartBar';
 import CartDrawer from './components/CartDrawer';
 import OrderPage from './components/OrderPage';
-import { menuData, getAllDishes } from './data/menu';
+import DishEditModal from './components/DishEditModal';
+import CategoryEditModal from './components/CategoryEditModal';
+import { useMenuStore } from './store/menuStore';
 import { preloadImages } from './utils/imageCache';
 import { getAssetUrl } from './utils/getAssetUrl';
+import { Dish, Category } from './types';
 
 // ⚠️ 配置你的 Server酱 SendKey
 // 获取方式：https://sct.ftqq.com/
@@ -16,11 +19,21 @@ import { getAssetUrl } from './utils/getAssetUrl';
 const NOTIFY_KEY = 'SCT306887T6WL9sVkPiFnCTpzEivB2xIbZ';  // 例如: 'SCTxxxxxxxxxxxxxxxx'
 
 function App() {
-  const [activeCategory, setActiveCategory] = useState(menuData[0].id);
+  const { categories, getAllDishes } = useMenuStore();
+  
+  const [activeCategory, setActiveCategory] = useState(categories[0]?.id || '');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isOrderOpen, setIsOrderOpen] = useState(false);
+  
+  // 菜品编辑弹窗状态
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDish, setEditingDish] = useState<Dish | null>(null);
+  
+  // 分类编辑弹窗状态
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  const currentCategory = menuData.find(c => c.id === activeCategory);
+  const currentCategory = categories.find(c => c.id === activeCategory);
 
   // 预加载所有菜品图片
   useEffect(() => {
@@ -44,7 +57,7 @@ function App() {
       };
       loadBatch(0);
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [getAllDishes, currentCategory]);
 
   const handleCategoryChange = useCallback((categoryId: string) => {
     setActiveCategory(categoryId);
@@ -67,20 +80,60 @@ function App() {
     setIsOrderOpen(false);
   }, []);
 
+  // 编辑菜品
+  const handleEditDish = useCallback((dish: Dish) => {
+    setEditingDish(dish);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // 新增菜品
+  const handleAddDish = useCallback(() => {
+    setEditingDish(null);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // 关闭编辑弹窗
+  const handleEditModalClose = useCallback(() => {
+    setIsEditModalOpen(false);
+    setEditingDish(null);
+  }, []);
+
+  // 编辑分类
+  const handleEditCategory = useCallback((category: Category) => {
+    setEditingCategory(category);
+    setIsCategoryModalOpen(true);
+  }, []);
+
+  // 新增分类
+  const handleAddCategory = useCallback(() => {
+    setEditingCategory(null);
+    setIsCategoryModalOpen(true);
+  }, []);
+
+  // 关闭分类编辑弹窗
+  const handleCategoryModalClose = useCallback(() => {
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+  }, []);
+
   return (
     <div className="min-h-screen pb-24">
       <Header />
       
       <CategoryTabs
-        categories={menuData}
+        categories={categories}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
+        onAddCategory={handleAddCategory}
+        onEditCategory={handleEditCategory}
       />
 
       {currentCategory && (
         <DishList
           dishes={currentCategory.dishes}
           categoryName={currentCategory.name}
+          onEditDish={handleEditDish}
+          onAddDish={handleAddDish}
         />
       )}
 
@@ -100,6 +153,21 @@ function App() {
         isOpen={isOrderOpen}
         onClose={handleOrderClose}
         notifyKey={NOTIFY_KEY}
+      />
+
+      {/* 菜品编辑弹窗 */}
+      <DishEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        dish={editingDish}
+        defaultCategory={activeCategory}
+      />
+
+      {/* 分类编辑弹窗 */}
+      <CategoryEditModal
+        isOpen={isCategoryModalOpen}
+        onClose={handleCategoryModalClose}
+        category={editingCategory}
       />
 
       {/* 未配置通知提示 */}

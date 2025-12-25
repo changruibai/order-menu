@@ -8,23 +8,30 @@ import CachedImage from './CachedImage';
 interface DishCardProps {
   dish: Dish;
   index: number;
+  onEdit?: (dish: Dish) => void;
 }
 
-const DishCard: React.FC<DishCardProps> = ({ dish, index }) => {
+const DishCard: React.FC<DishCardProps> = ({ dish, index, onEdit }) => {
   const { items, addItem, removeItem } = useCartStore();
   const [showAdded, setShowAdded] = useState(false);
   
   const cartItem = items.find(item => item.dish.id === dish.id);
   const quantity = cartItem?.quantity || 0;
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addItem(dish);
     setShowAdded(true);
     setTimeout(() => setShowAdded(false), 800);
   };
 
-  const handleRemove = () => {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
     removeItem(dish.id);
+  };
+
+  const handleCardClick = () => {
+    onEdit?.(dish);
   };
 
   return (
@@ -32,14 +39,15 @@ const DishCard: React.FC<DishCardProps> = ({ dish, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
-      className="bg-white rounded-2xl overflow-hidden card-shadow hover:card-shadow-lg transition-shadow duration-300"
+      onClick={handleCardClick}
+      className="bg-white rounded-2xl overflow-hidden card-shadow hover:card-shadow-lg transition-shadow duration-300 cursor-pointer active:scale-[0.98]"
     >
       {/* 图片区域 */}
-      <div className="relative aspect-[4/3] overflow-hidden group">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <CachedImage
           src={dish.image}
           alt={dish.name}
-          className="w-full h-full transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full transition-transform duration-500"
         />
         
         {/* 标签 */}
