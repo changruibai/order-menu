@@ -1,31 +1,42 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
 import CategoryTabs from './components/CategoryTabs';
 import DishList from './components/DishList';
 import CartBar from './components/CartBar';
-import CartDrawer from './components/CartDrawer';
-import OrderPage from './components/OrderPage';
-import DishEditModal from './components/DishEditModal';
-import CategoryEditModal from './components/CategoryEditModal';
 import { useMenuStore } from './store/menuStore';
-import { preloadImages } from './utils/imageCache';
-import { getAssetUrl } from './utils/getAssetUrl';
 import { Dish, Category } from './types';
 import { isSupabaseConfigured } from './lib/supabase';
+
+// 懒加载非首屏必要的组件
+const CartDrawer = lazy(() => import('./components/CartDrawer'));
+const OrderPage = lazy(() => import('./components/OrderPage'));
+const DishEditModal = lazy(() => import('./components/DishEditModal'));
+const CategoryEditModal = lazy(() => import('./components/CategoryEditModal'));
 
 // ⚠️ 配置你的 Server酱 SendKey
 // 获取方式：https://sct.ftqq.com/
 // 登录后在「Key&API」页面获取 SendKey
 const NOTIFY_KEY = 'SCT306887T6WL9sVkPiFnCTpzEivB2xIbZ';  // 例如: 'SCTxxxxxxxxxxxxxxxx'
 
-function App() {
-  const { categories, getAllDishes, initialize, isLoading, isSyncing } = useMenuStore();
+interface AppProps {
+  onReady?: () => void;
+}
+
+function App({ onReady }: AppProps) {
+  const { categories, initialize, isLoading, isSyncing, isInitialized } = useMenuStore();
   
   // 初始化 Supabase 数据
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // 当初始化完成后通知外部
+  useEffect(() => {
+    if (isInitialized && !isLoading && onReady) {
+      onReady();
+    }
+  }, [isInitialized, isLoading, onReady]);
   
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id || '');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -39,31 +50,14 @@ function App() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  const currentCategory = categories.find(c => c.id === activeCategory);
-
-  // 预加载所有菜品图片
+  // 更新 activeCategory 当 categories 变化时
   useEffect(() => {
-    const allDishes = getAllDishes();
-    const images = allDishes.map(dish => getAssetUrl(dish.image));
-    
-    // 分批预加载，优先加载当前分类
-    const currentImages = currentCategory?.dishes.map(d => getAssetUrl(d.image)) || [];
-    const otherImages = images.filter(img => !currentImages.includes(img));
-    
-    // 先加载当前分类的图片
-    preloadImages(currentImages).then(() => {
-      // 然后在后台加载其他图片
-      const batchSize = 6;
-      const loadBatch = (index: number) => {
-        const batch = otherImages.slice(index, index + batchSize);
-        if (batch.length === 0) return;
-        preloadImages(batch).then(() => {
-          setTimeout(() => loadBatch(index + batchSize), 100);
-        });
-      };
-      loadBatch(0);
-    });
-  }, [getAllDishes, currentCategory]);
+    if (categories.length > 0 && !categories.find(c => c.id === activeCategory)) {
+      setActiveCategory(categories[0]?.id || '');
+    }
+  }, [categories, activeCategory]);
+
+  const currentCategory = categories.find(c => c.id === activeCategory);
 
   const handleCategoryChange = useCallback((categoryId: string) => {
     setActiveCategory(categoryId);
@@ -122,6 +116,13 @@ function App() {
     setEditingCategory(null);
   }, []);
 
+  // 懒加载组件的 fallback
+  const ModalFallback = () => (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
   return (
     <div className="min-h-screen pb-24">
       <Header />
@@ -150,31 +151,48 @@ function App() {
         />
       </AnimatePresence>
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={handleCartClose}
-      />
+      {/* 懒加载的模态框组件 */}
+      <Suspense fallback={<ModalFallback />}>
+        {isCartOpen && (
+          <CartDrawer
+            isOpen={isCartOpen}
+            onClose={handleCartClose}
+          />
+        )}
+      </Suspense>
 
-      <OrderPage
-        isOpen={isOrderOpen}
-        onClose={handleOrderClose}
-        notifyKey={NOTIFY_KEY}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        {isOrderOpen && (
+          <OrderPage
+            isOpen={isOrderOpen}
+            onClose={handleOrderClose}
+            notifyKey={NOTIFY_KEY}
+          />
+        )}
+      </Suspense>
 
       {/* 菜品编辑弹窗 */}
-      <DishEditModal
-        isOpen={isEditModalOpen}
-        onClose={handleEditModalClose}
-        dish={editingDish}
-        defaultCategory={activeCategory}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        {isEditModalOpen && (
+          <DishEditModal
+            isOpen={isEditModalOpen}
+            onClose={handleEditModalClose}
+            dish={editingDish}
+            defaultCategory={activeCategory}
+          />
+        )}
+      </Suspense>
 
       {/* 分类编辑弹窗 */}
-      <CategoryEditModal
-        isOpen={isCategoryModalOpen}
-        onClose={handleCategoryModalClose}
-        category={editingCategory}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        {isCategoryModalOpen && (
+          <CategoryEditModal
+            isOpen={isCategoryModalOpen}
+            onClose={handleCategoryModalClose}
+            category={editingCategory}
+          />
+        )}
+      </Suspense>
 
       {/* 加载状态 */}
       {isLoading && (
@@ -212,4 +230,3 @@ function App() {
 }
 
 export default App;
-
