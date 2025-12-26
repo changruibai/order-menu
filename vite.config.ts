@@ -7,7 +7,12 @@ export default defineConfig({
   base: process.env.GITHUB_PAGES || process.env.GITEE_PAGES ? '/order-menu/' : '/',
   server: {
     host: '127.0.0.1',
-    port: 5173
+    port: 5173,
+    // 配置静态资源缓存头
+    headers: {
+      // 图片资源缓存 1 年
+      'Cache-Control': 'public, max-age=31536000'
+    }
   },
   build: {
     outDir: 'dist',
