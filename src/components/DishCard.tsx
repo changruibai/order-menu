@@ -48,6 +48,8 @@ const DishCard: React.FC<DishCardProps> = ({ dish, index, onEdit }) => {
           src={dish.image}
           alt={dish.name}
           className="w-full h-full transition-transform duration-500"
+          // 首屏前4张图片优先加载
+          priority={index < 4}
         />
         
         {/* 标签 */}
