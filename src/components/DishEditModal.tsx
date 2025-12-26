@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Trash2, Image, Plus, Tag, Camera, Link } from 'lucide-react';
+import { X, Save, Trash2, Image, Plus, Tag, Camera, Link, Cloud, Loader2 } from 'lucide-react';
 import { Dish, Category } from '../types';
 import { useMenuStore } from '../store/menuStore';
 import CachedImage from './CachedImage';
+import { storageService } from '../services/storageService';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 interface DishEditModalProps {
   isOpen: boolean;
@@ -40,6 +42,8 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
   const [showTagInput, setShowTagInput] = useState(false);
   const [imagePreviewError, setImagePreviewError] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // 初始化表单
   useEffect(() => {
@@ -65,7 +69,7 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
   }, [isOpen, dish, defaultCategory, categories]);
   
   // 处理文件选择
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -81,14 +85,33 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
       return;
     }
     
-    // 将图片转为 base64
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setImage(base64);
-      setImagePreviewError(false);
-    };
-    reader.readAsDataURL(file);
+    // 如果配置了 Supabase，直接上传到云端
+    if (isSupabaseConfigured()) {
+      setIsUploading(true);
+      try {
+        const url = await storageService.uploadImage(file);
+        if (url) {
+          setImage(url);
+          setImagePreviewError(false);
+        } else {
+          alert('图片上传失败，请重试');
+        }
+      } catch (error) {
+        console.error('上传图片失败:', error);
+        alert('图片上传失败，请重试');
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      // 未配置 Supabase，使用 base64（本地存储）
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setImage(base64);
+        setImagePreviewError(false);
+      };
+      reader.readAsDataURL(file);
+    }
     
     // 清空 input 以便可以重复选择同一文件
     e.target.value = '';
@@ -122,35 +145,49 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
   }, []);
   
   // 保存菜品
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!name.trim() || !category) {
       alert('请填写菜品名称和选择分类');
       return;
     }
     
-    const dishData: Dish = {
-      id: dish?.id || generateId(),
-      name: name.trim(),
-      description: description.trim(),
-      image: image.trim() || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?w=400&h=300&fit=crop',
-      category,
-      tags: tags.length > 0 ? tags : undefined
-    };
+    setIsSaving(true);
     
-    if (isEditMode) {
-      updateDish(dish.id, dishData);
-    } else {
-      addDish(dishData);
+    try {
+      const dishData: Dish = {
+        id: dish?.id || generateId(),
+        name: name.trim(),
+        description: description.trim(),
+        image: image.trim() || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?w=400&h=300&fit=crop',
+        category,
+        tags: tags.length > 0 ? tags : undefined
+      };
+      
+      if (isEditMode) {
+        await updateDish(dish.id, dishData);
+      } else {
+        await addDish(dishData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('保存菜品失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsSaving(false);
     }
-    
-    onClose();
   }, [name, description, image, category, tags, dish, isEditMode, generateId, updateDish, addDish, onClose]);
   
   // 删除菜品
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (dish && confirm(`确定要删除「${dish.name}」吗？`)) {
-      deleteDish(dish.id);
-      onClose();
+      try {
+        await deleteDish(dish.id);
+        onClose();
+      } catch (error) {
+        console.error('删除菜品失败:', error);
+        alert('删除失败，请重试');
+      }
     }
   }, [dish, deleteDish, onClose]);
   
@@ -214,10 +251,15 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
                 
                 {/* 图片预览区域 */}
                 <div 
-                  onClick={handleSelectFile}
-                  className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200 cursor-pointer active:scale-[0.99] transition-transform"
+                  onClick={isUploading ? undefined : handleSelectFile}
+                  className={`relative aspect-video rounded-xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200 transition-transform ${isUploading ? 'cursor-wait' : 'cursor-pointer active:scale-[0.99]'}`}
                 >
-                  {image && !imagePreviewError ? (
+                  {isUploading ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-primary-500 bg-primary-50">
+                      <Loader2 className="w-10 h-10 animate-spin mb-2" />
+                      <span className="text-sm font-medium">上传中...</span>
+                    </div>
+                  ) : image && !imagePreviewError ? (
                     <>
                       <CachedImage
                         src={image}
@@ -225,6 +267,13 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
                         className="w-full h-full"
                         onError={() => setImagePreviewError(true)}
                       />
+                      {/* 云端图片标识 */}
+                      {image.includes('supabase') && (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-0.5 rounded-full text-xs flex items-center gap-1">
+                          <Cloud className="w-3 h-3" />
+                          已上传
+                        </div>
+                      )}
                       {/* 点击更换提示 */}
                       <div className="absolute inset-0 bg-black/40 opacity-0 active:opacity-100 flex items-center justify-center transition-opacity">
                         <div className="text-white text-center">
@@ -238,6 +287,12 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
                       <Camera className="w-12 h-12 mb-2" />
                       <span className="text-sm font-medium">点击选择图片</span>
                       <span className="text-xs mt-1">支持 jpg、png、webp 格式</span>
+                      {isSupabaseConfigured() && (
+                        <span className="text-xs mt-1 text-green-500 flex items-center gap-1">
+                          <Cloud className="w-3 h-3" />
+                          将自动上传到云端
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -423,10 +478,15 @@ const DishEditModal: React.FC<DishEditModalProps> = ({
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-400 hover:from-primary-600 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all"
+                disabled={isSaving || isUploading}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-400 hover:from-primary-600 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-4 h-4" />
-                保存
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {isSaving ? '保存中...' : '保存'}
               </button>
             </div>
           </motion.div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Trash2 } from 'lucide-react';
+import { X, Save, Trash2, Loader2 } from 'lucide-react';
 import { Category } from '../types';
 import { useMenuStore } from '../store/menuStore';
 
@@ -31,6 +31,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
   // 表单状态
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('🍽️');
+  const [isSaving, setIsSaving] = useState(false);
   
   // 初始化表单
   useEffect(() => {
@@ -53,30 +54,39 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
   }, []);
   
   // 保存分类
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       alert('请填写分类名称');
       return;
     }
     
-    const categoryData: Category = {
-      id: category?.id || generateId(),
-      name: name.trim(),
-      icon,
-      dishes: category?.dishes || []
-    };
+    setIsSaving(true);
     
-    if (isEditMode) {
-      updateCategory(category.id, categoryData);
-    } else {
-      addCategory(categoryData);
+    try {
+      const categoryData: Category = {
+        id: category?.id || generateId(),
+        name: name.trim(),
+        icon,
+        dishes: category?.dishes || []
+      };
+      
+      if (isEditMode) {
+        await updateCategory(category.id, categoryData);
+      } else {
+        await addCategory(categoryData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('保存分类失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsSaving(false);
     }
-    
-    onClose();
   }, [name, icon, category, isEditMode, generateId, updateCategory, addCategory, onClose]);
   
   // 删除分类
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!category) return;
     
     // 检查分类下是否有菜品
@@ -92,8 +102,13 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
     }
     
     if (confirm(`确定要删除分类「${category.name}」吗？`)) {
-      deleteCategory(category.id);
-      onClose();
+      try {
+        await deleteCategory(category.id);
+        onClose();
+      } catch (error) {
+        console.error('删除分类失败:', error);
+        alert('删除失败，请重试');
+      }
     }
   }, [category, categories.length, deleteCategory, onClose]);
   
@@ -215,10 +230,15 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-400 hover:from-primary-600 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all"
+                disabled={isSaving}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white bg-gradient-to-r from-primary-500 to-primary-400 hover:from-primary-600 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-4 h-4" />
-                保存
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {isSaving ? '保存中...' : '保存'}
               </button>
             </div>
           </motion.div>

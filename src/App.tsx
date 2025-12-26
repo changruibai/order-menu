@@ -12,6 +12,7 @@ import { useMenuStore } from './store/menuStore';
 import { preloadImages } from './utils/imageCache';
 import { getAssetUrl } from './utils/getAssetUrl';
 import { Dish, Category } from './types';
+import { isSupabaseConfigured } from './lib/supabase';
 
 // ⚠️ 配置你的 Server酱 SendKey
 // 获取方式：https://sct.ftqq.com/
@@ -19,7 +20,12 @@ import { Dish, Category } from './types';
 const NOTIFY_KEY = 'SCT306887T6WL9sVkPiFnCTpzEivB2xIbZ';  // 例如: 'SCTxxxxxxxxxxxxxxxx'
 
 function App() {
-  const { categories, getAllDishes } = useMenuStore();
+  const { categories, getAllDishes, initialize, isLoading, isSyncing } = useMenuStore();
+  
+  // 初始化 Supabase 数据
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
   
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id || '');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -170,8 +176,33 @@ function App() {
         category={editingCategory}
       />
 
+      {/* 加载状态 */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-600">加载菜单中...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* 同步状态指示器 */}
+      {isSyncing && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm flex items-center gap-2 z-50 shadow-lg">
+          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          同步中...
+        </div>
+      )}
+
+      {/* Supabase 未配置提示 */}
+      {!isSupabaseConfigured() && (
+        <div className="fixed top-16 left-4 right-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 z-30">
+          ☁️ 提示：配置 Supabase 后可实现数据云端同步。在 <code className="bg-amber-100 px-1 rounded">.env</code> 中设置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY
+        </div>
+      )}
+
       {/* 未配置通知提示 */}
-      {!NOTIFY_KEY && (
+      {!NOTIFY_KEY && isSupabaseConfigured() && (
         <div className="fixed top-16 left-4 right-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 z-30">
           💡 提示：在 <code className="bg-yellow-100 px-1 rounded">App.tsx</code> 中配置 NOTIFY_KEY 以启用微信通知
         </div>
